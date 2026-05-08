@@ -1,0 +1,53 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Models and Data
+models/*.pkl
+models/*.joblib
+data/raw/
+data/processed/
+
+# Large Files
+*.pkl
+*.joblib
+*.csv
+*.parquet
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# IDE settings
+.vscode/settings.json
+.idea/workspace.xml
