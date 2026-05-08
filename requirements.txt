@@ -5,3 +5,8 @@ xgboost
 librosa
 soundfile
 audioread
+
+# FastAPI Backend
+fastapi
+uvicorn[standard]
+python-multipart

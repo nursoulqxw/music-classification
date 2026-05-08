@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Genre Classifier</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <div class="bg-notes" aria-hidden="true">
+    <span>&#9835;</span>
+    <span>&#9833;</span>
+    <span>&#9836;</span>
+    <span>&#9834;</span>
+    <span>&#9835;</span>
+    <span>&#9833;</span>
+    <span>&#9836;</span>
+    <span>&#9834;</span>
+    <span>&#9835;</span>
+    <span>&#9833;</span>
+  </div>
+
+  <div class="page">
+
+    <header class="header">
+      <div class="header__icon">&#127911;</div>
+      <h1 class="header__title">Music Genre Classifier</h1>
+      <p class="header__subtitle">Upload a song and discover its genre instantly</p>
+    </header>
+
+    <section class="card" id="upload-card">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".mp3,.wav,.flac,.aac,.ogg" />
+        <div class="drop-zone__icon">&#127911;</div>
+        <h3 class="drop-zone__heading">Drop your audio file here</h3>
+        <p class="drop-zone__hint">or click to browse &mdash; MP3, WAV, FLAC, AAC, OGG</p>
+      </div>
+
+      <div class="file-preview" id="file-preview">
+        <span class="file-preview__icon">&#9835;</span>
+        <div class="file-preview__info">
+          <span class="file-preview__name" id="file-name"></span>
+          <span class="file-preview__size" id="file-size"></span>
+        </div>
+        <button class="file-preview__remove" id="clear-btn" aria-label="Remove file">&#10005;</button>
+      </div>
+
+      <audio class="audio-player" id="audio-player" controls></audio>
+
+      <p class="error-msg" id="error-msg" role="alert"></p>
+
+      <button class="btn btn--primary" id="analyze-btn" disabled>
+        Analyze Genre
+      </button>
+    </section>
+
+    <section class="card card--center" id="loading-card" hidden>
+      <div class="spinner" aria-label="Analyzing&hellip;"></div>
+      <p class="loading__text">Analyzing audio features&hellip;</p>
+      <p class="loading__sub">This may take a few seconds</p>
+    </section>
+
+    <section class="card" id="results-card" hidden>
+      <div class="result-hero">
+        <p class="result-hero__label">Predicted Genre</p>
+        <p class="result-hero__genre" id="result-genre"></p>
+        <p class="result-hero__confidence">
+          Confidence: <span id="result-confidence"></span>
+        </p>
+      </div>
+
+      <div class="prob-section">
+        <h3 class="prob-section__title">All Genres</h3>
+        <div id="prob-list"></div>
+      </div>
+
+      <button class="btn btn--ghost" id="reset-btn">&#8617; Analyze another song</button>
+    </section>
+
+    <section class="memes">
+      <h2 class="memes__title">while you wait&hellip;</h2>
+      <div class="memes__grid">
+
+        <div class="meme">
+          <p class="meme__top">the model, equipped with 57 audio features</p>
+          <p class="meme__big">&#128266;</p>
+          <p class="meme__punchline">&ldquo;we can&rsquo;t hear the bass&rdquo;</p>
+          <p class="meme__caption">spectral centroid said what it said</p>
+        </div>
+
+        <div class="meme meme--drake">
+          <div class="meme__drake-row meme__drake-row--no">
+            <span class="meme__drake-face">&#10060;</span>
+            <span class="meme__drake-text">understanding what the model actually learned</span>
+          </div>
+          <div class="meme__drake-row meme__drake-row--yes">
+            <span class="meme__drake-face">&#10003;</span>
+            <span class="meme__drake-text">train accuracy 99% &mdash; ship it</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
