@@ -6,7 +6,8 @@ librosa
 soundfile
 audioread
 
-# FastAPI Backend
+#backend
 fastapi
 uvicorn[standard]
 python-multipart
+

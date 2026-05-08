@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -35,7 +35,7 @@ async def root():
 async def predict_genre(file: UploadFile = File(...)):
     if not file.filename.lower().endswith((".mp3", ".wav", ".flac", ".aac", ".ogg")):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported file format. Please upload MP3, WAV, FLAC, AAC, or OGG.",
         )
 
@@ -57,7 +57,7 @@ async def predict_genre(file: UploadFile = File(...)):
             "all_probabilities": prob_dict,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}")
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
