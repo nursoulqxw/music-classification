@@ -1,12 +1,16 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+#Python modules
 import tempfile
 import os
 import sys
 from pathlib import Path
 import uvicorn
+
+#FastAPI modules
+from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 
 sys.path.append(str(Path(__file__).parent / "src"))
 
