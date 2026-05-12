@@ -6,7 +6,7 @@ from pathlib import Path
 import uvicorn
 
 #FastAPI modules
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,7 +16,14 @@ sys.path.append(str(Path(__file__).parent / "src"))
 
 from predict import predict_song, le
 
-app = FastAPI(title="Music Genre Classifier API", version="1.0.0")
+# CNN is optional — only available if torch/torchaudio are installed and cnn_model.pth exists
+try:
+    from predict_cnn import predict_song_cnn
+    CNN_AVAILABLE = True
+except ImportError:
+    CNN_AVAILABLE = False
+
+app = FastAPI(title="Music Genre Classifier API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,12 +42,27 @@ async def root():
     return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
+# Tells the frontend which models are ready to use
+@app.get("/models")
+async def available_models():
+    return {"ml": True, "cnn": CNN_AVAILABLE}
+
+
 @app.post("/predict")
-async def predict_genre(file: UploadFile = File(...)):
+async def predict_genre(
+    file: UploadFile = File(...),
+    model_type: str = Form("ml"),
+):
     if not file.filename.lower().endswith((".mp3", ".wav", ".flac", ".aac", ".ogg")):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported file format. Please upload MP3, WAV, FLAC, AAC, or OGG.",
+        )
+
+    if model_type == "cnn" and not CNN_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="CNN model is unavailable. Install torch/torchaudio and place cnn_model.pth in models/.",
         )
 
     with tempfile.NamedTemporaryFile(
@@ -50,16 +72,25 @@ async def predict_genre(file: UploadFile = File(...)):
         tmp_path = tmp.name
 
     try:
-        genre, probabilities = predict_song(tmp_path)
-        prob_dict = {
-            le.classes_[i]: float(probabilities[i]) for i in range(len(le.classes_))
-        }
+        if model_type == "cnn":
+            genre, prob_dict = predict_song_cnn(tmp_path)
+            confidence = max(prob_dict.values())
+        else:
+            genre, probabilities = predict_song(tmp_path)
+            prob_dict = {
+                le.classes_[i]: float(probabilities[i]) for i in range(len(le.classes_))
+            }
+            confidence = float(max(probabilities))
+
         return {
             "filename": file.filename,
             "predicted_genre": genre,
-            "confidence": float(max(probabilities)),
+            "confidence": confidence,
             "all_probabilities": prob_dict,
+            "model_used": model_type,
         }
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}")
     finally:

@@ -379,6 +379,63 @@ body {
   flex-shrink: 0;
 }
 
+.model-selector {
+  margin-top: 1.25rem;
+}
+
+.model-selector__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.model-selector__options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.model-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+
+.model-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.model-option:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.model-option.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.model-option__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.model-option__desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .memes {
   width: 100%;
   max-width: 560px;

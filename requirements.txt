@@ -11,3 +11,8 @@ fastapi
 uvicorn[standard]
 python-multipart
 
+#CNN model (ResNet18)
+torch
+torchaudio
+torchvision
+

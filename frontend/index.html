@@ -48,6 +48,22 @@
 
       <audio class="audio-player" id="audio-player" controls></audio>
 
+      <div class="model-selector">
+        <p class="model-selector__label">Model</p>
+        <div class="model-selector__options">
+          <label class="model-option" id="opt-ml">
+            <input type="radio" name="model" value="ml" checked />
+            <span class="model-option__name">ML Model</span>
+            <span class="model-option__desc">XGBoost + SVM ensemble</span>
+          </label>
+          <label class="model-option" id="opt-cnn">
+            <input type="radio" name="model" value="cnn" />
+            <span class="model-option__name">CNN</span>
+            <span class="model-option__desc">ResNet18 on mel spectrograms</span>
+          </label>
+        </div>
+      </div>
+
       <p class="error-msg" id="error-msg" role="alert"></p>
 
       <button class="btn btn--primary" id="analyze-btn" disabled>

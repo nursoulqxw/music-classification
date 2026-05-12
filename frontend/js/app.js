@@ -19,6 +19,19 @@ const resetBtn         = document.getElementById("reset-btn");
 
 let selectedFile = null;
 
+// Fetch which models are available and disable CNN if not ready
+fetch("/models")
+  .then((r) => r.json())
+  .then((data) => {
+    if (!data.cnn) {
+      const cnnOpt = document.getElementById("opt-cnn");
+      cnnOpt.classList.add("is-disabled");
+      cnnOpt.querySelector("input").disabled = true;
+      cnnOpt.querySelector(".model-option__desc").textContent = "not available";
+    }
+  })
+  .catch(() => {});
+
 dropZone.addEventListener("dragover", (e) => {
   e.preventDefault();
   dropZone.classList.add("is-over");
@@ -71,8 +84,11 @@ async function analyze() {
   hideError();
   showCard("loading");
 
+  const modelType = document.querySelector('input[name="model"]:checked').value;
+
   const formData = new FormData();
   formData.append("file", selectedFile);
+  formData.append("model_type", modelType);
 
   try {
     const res = await fetch("/predict", { method: "POST", body: formData });
