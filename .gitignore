@@ -24,13 +24,13 @@ __pycache__/
 *.ipynb_checkpoints/
 
 # Models and Data
-models/*.pkl
+# models/*.pkl
 models/*.joblib
 data/raw/
 data/processed/
 
 # Large Files
-# *.pkl
+*.pkl
 *.joblib
 *.csv
 *.parquet
