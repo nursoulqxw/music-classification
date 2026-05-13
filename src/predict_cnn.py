@@ -1,9 +1,10 @@
 import torch
-import torchaudio
-import torchaudio.transforms as T
-import torch.nn.functional as F
-import torchvision.models as models
 import torch.nn as nn
+import torch.nn.functional as F
+import torchaudio.transforms as T
+import torchvision.models as models
+import librosa
+import numpy as np
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,14 +50,8 @@ def _get_model():
 
 
 def predict_song_cnn(file_path):
-    waveform, sr = torchaudio.load(str(file_path))
-
-    if waveform.shape[0] > 1:
-        waveform = waveform.mean(dim=0, keepdim=True)
-
-    if sr != SAMPLE_RATE:
-        waveform = T.Resample(sr, SAMPLE_RATE)(waveform)
-
+    y, _ = librosa.load(str(file_path), sr=SAMPLE_RATE, mono=True)
+    waveform = torch.FloatTensor(y).unsqueeze(0)
     waveform = waveform / (waveform.abs().max() + 1e-9)
 
     n = waveform.shape[1]
@@ -70,8 +65,12 @@ def predict_song_cnn(file_path):
     spec = (spec - spec.mean()) / (spec.std() + 1e-6)
     spec = spec.unsqueeze(0).to(device)
 
+    # Temperature scaling: softens overconfident predictions from a small training set
+    TEMPERATURE = 2.5
+
     with torch.no_grad():
-        probs = torch.softmax(_get_model()(spec), dim=1)[0]
+        logits = _get_model()(spec)
+        probs = torch.softmax(logits / TEMPERATURE, dim=1)[0]
 
     pred = IDX_TO_CLASS[torch.argmax(probs).item()]
     prob_dict = {IDX_TO_CLASS[i]: float(probs[i]) for i in range(len(CLASSES))}
