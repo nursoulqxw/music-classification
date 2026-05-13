@@ -30,7 +30,7 @@ data/raw/
 data/processed/
 
 # Large Files
-*.pkl
+# *.pkl
 *.joblib
 *.csv
 *.parquet
