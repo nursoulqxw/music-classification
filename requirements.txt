@@ -5,6 +5,8 @@ xgboost
 librosa
 soundfile
 audioread
+seaborn
+matplotlib
 
 #backend
 fastapi
