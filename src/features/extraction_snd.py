@@ -1,3 +1,17 @@
+"""
+src/features/extraction_snd.py
+-------------------------------
+Audio feature extraction for the drum/percussion sound classifier.
+
+Extracts a fixed set of audio descriptors from a short sound sample
+(kick, snare, hi-hat, etc.) using librosa. The resulting feature vector
+is fed into the XGBoost drum classifier trained in src/training/train_snd.py.
+
+Related modules:
+  src/training/train_snd.py    — trains the drum classifier on these features
+  src/prediction/predict_snd.py — calls extract_features() during drum inference
+"""
+
 import librosa
 import numpy as np
 

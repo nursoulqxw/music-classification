@@ -1,3 +1,28 @@
+"""
+src/analysis/analyze_models.py
+-------------------------------
+Comprehensive evaluation of all trained genre classification models.
+
+Loads the feature CSV and every saved model artifact from models/, then for
+each model (XGBoost, SVM, ExtraTrees, CatBoost, Weighted Ensemble, Legacy):
+
+  - Computes track-level metrics: Accuracy, Precision, Recall, F1, ROC-AUC
+  - Saves a confusion matrix PNG
+  - Saves a per-class F1 heatmap
+  - Saves ROC and Precision-Recall curves
+  - Saves a feature importance chart (tree-based models)
+
+All outputs go to reports/model_analysis/.
+
+Run from the project root:
+  python src/analysis/analyze_models.py
+
+Related modules:
+  src/training/train.py       — produces the model artifacts read here
+  src/features/extraction.py — same feature set used to build the CSV
+  reports/model_analysis/     — output directory for all generated plots
+"""
+
 import pickle
 import os
 from pathlib import Path
@@ -196,7 +221,10 @@ def save_performance_panel(y_true, y_pred, probabilities, class_names, model_nam
     axes[0].tick_params(axis="x", rotation=45)
     axes[0].tick_params(axis="y", rotation=0)
 
-    fpr, tpr, _ = roc_curve(y_true_bin.ravel(), probabilities.ravel())
+    y_true_flat = y_true_bin.ravel().astype(float)
+    prob_flat   = probabilities.ravel().astype(float)
+
+    fpr, tpr, _ = roc_curve(y_true_flat, prob_flat)
     axes[1].plot(fpr, tpr, label=f"Macro ROC-AUC = {roc_auc:.3f}", linewidth=2)
     axes[1].plot([0, 1], [0, 1], "k--", linewidth=1)
     axes[1].set_title(f"{model_name} ROC Curve")
@@ -206,8 +234,8 @@ def save_performance_panel(y_true, y_pred, probabilities, class_names, model_nam
     axes[1].grid(alpha=0.25)
 
     precision_vals, recall_vals, _ = precision_recall_curve(
-        y_true_bin.ravel(),
-        probabilities.ravel(),
+        y_true_flat,
+        prob_flat,
     )
     axes[2].plot(
         recall_vals,

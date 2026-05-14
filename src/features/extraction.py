@@ -1,3 +1,24 @@
+"""
+src/features/extraction.py
+--------------------------
+Audio feature extraction for the music genre classification pipeline.
+
+Takes a raw audio file, splits it into 5-second segments, and computes
+63 handcrafted features per segment using librosa:
+  - MFCC            *13  (mean + var)  =  26 features
+  - Chroma          *12  (mean + var)  =  24 features
+  - Spectral        *4   (mean + var)  =   8 features
+  - ZCR                  (mean + var)  =   2 features
+  - RMS energy           (mean + var)  =   2 features
+  - Tempo / BPM                        =   1 feature
+
+Returns a 2-D numpy array (n_segments * 63) consumed by the prediction layer.
+
+Related modules:
+  src/prediction/predict.py — calls process_file() during inference
+  src/training/train.py     — same feature set was used to build the training CSV
+"""
+
 import numpy as np
 import librosa
 

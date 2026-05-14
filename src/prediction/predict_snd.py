@@ -1,3 +1,19 @@
+"""
+src/prediction/predict_snd.py
+------------------------------
+Inference module for the drum / percussion sound classifier.
+
+Loads the XGBoost drum model and its preprocessing artifacts (scaler,
+label encoder, feature names) from models/, then exposes predict_drum():
+  1. Calls src/features/extraction_snd.py to extract features from the clip.
+  2. Aligns feature order to what the model was trained on.
+  3. Scales features and returns the predicted drum class + probabilities.
+
+Related modules:
+  src/features/extraction_snd.py  — computes the input features
+  src/training/train_snd.py       — trained and saved the drum model artifacts
+"""
+
 import pickle
 import pandas as pd
 from pathlib import Path

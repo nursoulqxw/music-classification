@@ -1,3 +1,27 @@
+"""
+src/prediction/predict_cnn.py
+------------------------------
+ResNet18 CNN inference for the music genre classifier.
+
+Loads a fine-tuned ResNet18 model (models/cnn_model.pth) that was trained
+on mel spectrograms of 5-second audio clips. The architecture is modified
+to accept single-channel (grayscale) spectrograms and outputs 10 genre classes.
+
+The main entry point is predict_song_cnn(file_path):
+  1. Loads the audio with librosa and crops/pads to exactly 5 seconds.
+  2. Computes a mel spectrogram and normalises it.
+  3. Runs a single forward pass through ResNet18 with temperature scaling
+     (T=2.5) to soften overconfident predictions from the small training set.
+  4. Returns the top genre name and the full probability dict.
+
+Called by:
+  backend/main.py  — lazy-loaded when model_type=cnn in POST /predict
+
+Related modules:
+  src/prediction/predict.py  — the alternative ML ensemble inference path
+  notebooks/02_cnn_training.ipynb — where the CNN was trained
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,6 +96,6 @@ def predict_song_cnn(file_path):
         logits = _get_model()(spec)
         probs = torch.softmax(logits / TEMPERATURE, dim=1)[0]
 
-    pred = IDX_TO_CLASS[torch.argmax(probs).item()]
+    pred = IDX_TO_CLASS[int(torch.argmax(probs).item())]
     prob_dict = {IDX_TO_CLASS[i]: float(probs[i]) for i in range(len(CLASSES))}
     return pred, prob_dict

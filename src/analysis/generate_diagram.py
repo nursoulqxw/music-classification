@@ -1,9 +1,22 @@
 """
-Generates a system architecture diagram PNG for the Music Genre Classifier.
-Output: reports/architecture_diagram.png
+src/analysis/generate_diagram.py
+---------------------------------
+Generates the system architecture diagram for the Music Genre Classifier.
+
+Produces a publication-ready PNG (reports/architecture_diagram.png) using
+matplotlib, showing the full end-to-end pipeline across four colour-coded zones:
+  USER / FRONTEND  →  FEATURE ENGINEERING  →  ML ENSEMBLE  →  OUTPUT
+
+The diagram is intended for inclusion in the written report and presentation.
+It also illustrates the optional CNN inference path (ResNet18).
 
 Run from the project root:
-    python src/analysis/generate_diagram.py
+  python src/analysis/generate_diagram.py
+
+Related modules:
+  src/prediction/predict.py     — the ML ensemble shown in the diagram
+  src/prediction/predict_cnn.py — the CNN path shown in the diagram
+  backend/main.py               — the FastAPI layer shown in the diagram
 """
 import os
 from pathlib import Path
@@ -31,7 +44,7 @@ C = {
 }
 
 
-def box(ax, cx, cy, w, h, label, sub=None, color="#4C72B0", fs=10):
+def box(ax, cx, cy, w, h, label, sub=None, color="#4C72B0", fs: float = 10):
     rect = mpatches.FancyBboxPatch(
         (cx - w / 2, cy - h / 2), w, h,
         boxstyle="round,pad=0.08",
@@ -133,7 +146,7 @@ def main():
     # connect feature engineering → model section
     arrow(ax, 8.3, 4.4, 9.0, 4.4)
 
-    ax.text(5.2, 4.0, "63 features\n× N segments", ha="center",
+    ax.text(5.2, 4.0, "63 features\n* N segments", ha="center",
             fontsize=7.5, color=C["backend"], style="italic")
 
     # ── ML ENSEMBLE ───────────────────────────────────────────────────

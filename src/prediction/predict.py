@@ -1,3 +1,29 @@
+"""
+src/prediction/predict.py
+--------------------------
+Weighted ensemble inference for the music genre classifier.
+
+Loads four pre-trained model artifacts from models/ and runs a soft-voting
+ensemble on the extracted features:
+  XGBoost    weight 0.40   (trained on StandardScaler features)
+  SVM        weight 0.25   (trained on PCA-reduced features)
+  ExtraTrees weight 0.20   (trained on StandardScaler features)
+  CatBoost   weight 0.15   (trained on StandardScaler features)
+
+The main entry point is predict_song(file_path):
+  1. Calls src/features/extraction.py to get one feature row per 5-sec segment.
+  2. Runs all four models and blends their probabilities.
+  3. Averages probabilities across segments.
+  4. Returns the top genre name and the full probability dict.
+
+Called by:
+  backend/main.py  — via POST /predict when model_type=ml
+
+Related modules:
+  src/features/extraction.py  — produces the feature matrix
+  src/training/train.py       — trained and saved the model artifacts
+"""
+
 import os
 import sys
 import pickle

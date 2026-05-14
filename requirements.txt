@@ -1,20 +1,25 @@
-numpy
-pandas
-scikit-learn
-xgboost
-catboost
-librosa
-soundfile
-audioread
-seaborn
-matplotlib
+# Core ML / data
+numpy==2.4.4
+pandas==3.0.2
+scikit-learn==1.8.0
+xgboost==3.2.0
+catboost==1.2.10
 
-#backend
-fastapi
-uvicorn[standard]
+# Audio
+librosa==0.11.0
+soundfile==0.13.1
+audioread
+
+# Visualisation
+seaborn==0.13.2
+matplotlib==3.10.9
+
+# Backend
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
 python-multipart
 
-#CNN model (ResNet18)
-torch
-torchaudio
-torchvision
+# CNN model (ResNet18) — optional, only needed for model_type=cnn
+torch==2.11.0
+torchaudio==2.11.0
+torchvision==0.26.0
