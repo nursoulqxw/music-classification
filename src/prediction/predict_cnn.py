@@ -7,7 +7,7 @@ import librosa
 import numpy as np
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 MODEL_PATH = BASE_DIR / "models" / "cnn_model.pth"
 
 SAMPLE_RATE = 22050

@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from feature_extraction import process_file
+from features.extraction import process_file
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 MODEL_DIR = BASE_DIR / "models"
 
 # 1. Safely load trained artifacts

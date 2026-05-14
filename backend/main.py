@@ -12,11 +12,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 
-sys.path.append(str(Path(__file__).parent / "src"))
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(ROOT_DIR / "src"))
 
-from predict import predict_song, le
+from prediction.predict import predict_song, le
 
-CNN_MODEL_PATH = Path(__file__).parent / "models" / "cnn_model.pth"
+CNN_MODEL_PATH = ROOT_DIR / "models" / "cnn_model.pth"
 CNN_AVAILABLE = CNN_MODEL_PATH.exists()
 _predict_song_cnn = None
 
@@ -24,7 +25,7 @@ _predict_song_cnn = None
 def get_predict_song_cnn():
     global _predict_song_cnn
     if _predict_song_cnn is None:
-        from predict_cnn import predict_song_cnn
+        from prediction.predict_cnn import predict_song_cnn
 
         _predict_song_cnn = predict_song_cnn
     return _predict_song_cnn
@@ -39,7 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FRONTEND_DIR = Path(__file__).parent / "frontend"
+FRONTEND_DIR = ROOT_DIR / "frontend"
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 

@@ -1,15 +1,17 @@
 import pickle
 import pandas as pd
+from pathlib import Path
 
-from feature_extraction_snd import extract_features
-from predict import BASE_DIR
+from features.extraction_snd import extract_features
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+MODEL_DIR = BASE_DIR / "models"
 
 # Load artifacts
-model = pickle.load(open("models/drum_model.pkl", "rb"))
-scaler = pickle.load(open("models/scaler_snd.pkl", "rb"))
-le = pickle.load(open("models/label_encoder_snd.pkl", "rb"))
-feature_names = pickle.load(open("models/feature_names.pkl", "rb"))
+model = pickle.load(open(MODEL_DIR / "drum_model.pkl", "rb"))
+scaler = pickle.load(open(MODEL_DIR / "scaler_snd.pkl", "rb"))
+le = pickle.load(open(MODEL_DIR / "label_encoder_snd.pkl", "rb"))
+feature_names = pickle.load(open(MODEL_DIR / "feature_names.pkl", "rb"))
 
 
 def predict_drum(audio_path):
