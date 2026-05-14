@@ -1,3 +1,26 @@
+"""
+src/training/train_snd.py
+--------------------------
+Training pipeline for the drum / percussion sound classifier.
+
+Reads data/processed/final_drum_dataset.csv, trains an XGBoost classifier
+to distinguish drum types (kick, snare, hi-hat, etc.), evaluates it, and
+saves four artifacts to models/:
+
+  models/drum_model.pkl       XGBoost drum classifier
+  models/scaler_snd.pkl       StandardScaler fitted on drum features
+  models/label_encoder_snd.pkl LabelEncoder for drum classes
+  models/feature_names.pkl    Ordered feature name list (ensures consistent
+                               column alignment at inference time)
+
+Run from the project root:
+  python src/training/train_snd.py
+
+Related modules:
+  src/features/extraction_snd.py   — extracts the same features at inference time
+  src/prediction/predict_snd.py    — loads the artifacts saved here
+"""
+
 import pickle
 import pandas as pd
 from pathlib import Path

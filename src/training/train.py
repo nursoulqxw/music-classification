@@ -1,6 +1,43 @@
+"""
+src/training/train.py
+----------------------
+Training pipeline for the music genre weighted ensemble.
+
+Reads the pre-built feature CSV (data/processed/music_5sec_features.csv),
+performs a group-level train/test split (by track_id to prevent leakage),
+then trains four classifiers in sequence:
+
+  Model         Input features        Saved artifact
+  ──────────────────────────────────────────────────
+  XGBoost       StandardScaler        models/xgb_model.pkl
+  SVM (RBF)     StandardScaler + PCA  models/svm_model.pkl
+  ExtraTrees    StandardScaler        models/extra_trees_model.pkl
+  CatBoost      StandardScaler        models/catboost_model.pkl
+
+After training, evaluates every model independently AND as a weighted
+soft-voting ensemble, printing a side-by-side metric table
+(Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC) and a per-genre
+classification report for each model.
+
+Also saves:
+  models/scaler.pkl         StandardScaler fitted on training data
+  models/pca.pkl            PCA fitted on scaled training data (for SVM)
+  models/label_encoder.pkl  LabelEncoder for the 10 genre classes
+
+Run from the project root:
+  python src/training/train.py
+
+Related modules:
+  src/features/extraction.py   — same feature set used at inference time
+  src/prediction/predict.py    — loads and uses the artifacts saved here
+  notebooks/01_data_analysis.ipynb — exploratory analysis of the same dataset
+"""
+
 import pickle
+import numpy as np
 import pandas as pd
 from pathlib import Path
+from typing import TypedDict
 
 from sklearn.metrics import (
     classification_report,
@@ -29,6 +66,18 @@ MODEL_DIR = BASE_DIR / "models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 
+class _ModelResult(TypedDict):
+    name: str
+    accuracy: float
+    precision: float
+    recall: float
+    f1: float
+    roc_auc: float
+    pr_auc: float
+    track_true: pd.Series
+    final_preds: pd.Series
+
+
 def main():
     print("Loading dataset...")
     df = pd.read_csv(DATA_FILE)
@@ -38,7 +87,7 @@ def main():
     groups = df["track_id"]
 
     le = LabelEncoder()
-    y_encoded = le.fit_transform(y)
+    y_encoded: np.ndarray = le.fit_transform(y)
 
     unique_songs = groups.unique()
 
@@ -48,13 +97,13 @@ def main():
         random_state=42
     )
 
-    train_idx = df["track_id"].isin(train_songs)
-    test_idx = df["track_id"].isin(test_songs)
+    train_pos = np.where(df["track_id"].isin(train_songs))[0]
+    test_pos  = np.where(df["track_id"].isin(test_songs))[0]
 
-    X_train, X_test = X[train_idx], X[test_idx]
-    y_train, y_test = y_encoded[train_idx], y_encoded[test_idx]
+    X_train, X_test = X.iloc[train_pos], X.iloc[test_pos]
+    y_train, y_test = y_encoded[train_pos], y_encoded[test_pos]
 
-    test_track_ids = groups[test_idx]
+    test_track_ids = groups.iloc[test_pos]
 
     # --- Standard Scaling ---
     scaler = StandardScaler()
@@ -161,7 +210,7 @@ def main():
     # ==========================================================
     # Track-Level Aggregation helper
     # ==========================================================
-    def track_level_metrics(probs, name):
+    def track_level_metrics(probs: np.ndarray, name: str) -> _ModelResult:
         df_tmp = pd.DataFrame(probs, columns=le.classes_)
         df_tmp["track_id"]   = test_track_ids.values
         df_tmp["true_label"] = le.inverse_transform(y_test)
@@ -180,9 +229,9 @@ def main():
         roc  = roc_auc_score(y_true_bin, track_preds.values, multi_class="ovr", average="weighted")
         pr   = average_precision_score(y_true_bin, track_preds.values, average="weighted")
 
-        return dict(name=name, accuracy=acc, precision=prec, recall=rec,
-                    f1=f1, roc_auc=roc, pr_auc=pr,
-                    track_true=track_true, final_preds=final)
+        return _ModelResult(name=name, accuracy=acc, precision=prec, recall=rec,
+                            f1=f1, roc_auc=roc, pr_auc=pr,
+                            track_true=track_true, final_preds=final)
 
     # ==========================================================
     # Metrics for every model
