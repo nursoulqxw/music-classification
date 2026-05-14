@@ -20,9 +20,13 @@ def load_artifacts():
         extra_trees_model = (
             pickle.load(open(extra_trees_path, "rb")) if extra_trees_path.exists() else None
         )
-        catboost_model = (
-            pickle.load(open(catboost_path, "rb")) if catboost_path.exists() else None
-        )
+        try:
+            catboost_model = (
+                pickle.load(open(catboost_path, "rb")) if catboost_path.exists() else None
+            )
+        except ModuleNotFoundError:
+            print("Warning: catboost not installed — CatBoost model skipped.")
+            catboost_model = None
         pca = pickle.load(open(MODEL_DIR / "pca.pkl", "rb"))
         scaler = pickle.load(open(MODEL_DIR / "scaler.pkl", "rb"))
         le = pickle.load(open(MODEL_DIR / "label_encoder.pkl", "rb"))

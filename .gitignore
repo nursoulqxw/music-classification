@@ -1,6 +1,6 @@
-# Virtual Environment
-.venv/
+# Virtual environments
 venv/
+.venv/
 env/
 ENV/
 .env
@@ -10,46 +10,38 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
 
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb_checkpoints/
 
-# Models and Data
-# models/*.pkl
-models/extra_trees_model.pkl
-models/*.joblib
+# Data (large files — add manually if needed)
 data/raw/
 data/processed/
 
-# Large Files
-# *.pkl
+# Model artifacts (keep .pkl and .pth in version control if small enough)
+# models/extra_trees_model.pkl
 *.joblib
-*.csv
-*.parquet
+
+# Matplotlib cache
+reports/model_analysis/.matplotlib_cache/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
-reports/model_analysis/.matplotlib_cache/
+# IDEs
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+*~
 
 # Build artifacts
 dist/
 build/
 *.egg-info/
 
-# IDE settings
-.vscode/settings.json
-.idea/workspace.xml
+# Logs
+*.log
+logs/

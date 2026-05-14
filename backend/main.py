@@ -49,10 +49,27 @@ async def root():
     return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok", "version": app.version}
+
+
 # Tells the frontend which models are ready to use
 @app.get("/models")
 async def available_models():
     return {"ml": True, "cnn": CNN_AVAILABLE}
+
+
+@app.get("/info")
+async def info():
+    return {
+        "project": "Music Genre Classifier",
+        "genres": list(le.classes_),
+        "models_available": {"ml_ensemble": True, "cnn": CNN_AVAILABLE},
+        "ensemble_weights": {"xgboost": 0.40, "svm": 0.25, "extra_trees": 0.20, "catboost": 0.15},
+        "feature_count": 63,
+        "segment_length_sec": 5,
+    }
 
 
 @app.post("/predict")
