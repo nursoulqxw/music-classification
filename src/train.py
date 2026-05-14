@@ -33,12 +33,12 @@ def main():
 
     X_train, X_test = X[train_idx], X[test_idx]
     y_train, y_test = y_encoded[train_idx], y_encoded[test_idx]
-    test_track_ids = groups[test_idx]
+    test_track_ids = groups[test_idx] 
 
     # --- Standard Scaling for all ---
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    X_test_scaled = scaler.transform(X_test) 
 
     # --- PCA Stream (Strictly for SVM) ---
     pca = PCA(n_components=0.95, random_state=42)
