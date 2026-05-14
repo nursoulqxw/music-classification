@@ -1,3 +1,21 @@
+"""
+backend/main.py
+---------------
+FastAPI application — the central entry point for the web service.
+
+Responsibilities:
+  - Serves the static frontend (HTML/CSS/JS) at GET /
+  - Exposes POST /predict: receives an uploaded audio file, writes it to a
+    temp file, delegates feature extraction + inference to src/prediction/,
+    and returns the predicted genre with per-class confidence scores.
+  - Exposes GET /health, /models, /genres, /info for monitoring and discovery.
+
+Related modules:
+  src/prediction/predict.py    — weighted ML ensemble inference (used by default)
+  src/prediction/predict_cnn.py — ResNet18 CNN inference (used when model_type=cnn)
+  frontend/                    — the static UI that calls this API
+"""
+
 #Python modules
 import tempfile
 import os
@@ -77,7 +95,8 @@ async def predict_genre(
     file: UploadFile = File(...),
     model_type: str = Form("ml"),
 ):
-    if not file.filename.lower().endswith((".mp3", ".wav", ".flac", ".aac", ".ogg")):
+    filename = file.filename or ""
+    if not filename.lower().endswith((".mp3", ".wav", ".flac", ".aac", ".ogg")):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported file format. Please upload MP3, WAV, FLAC, AAC, or OGG.",
@@ -90,7 +109,7 @@ async def predict_genre(
         )
 
     with tempfile.NamedTemporaryFile(
-        delete=False, suffix=os.path.splitext(file.filename)[1]
+        delete=False, suffix=os.path.splitext(filename)[1]
     ) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
@@ -108,7 +127,7 @@ async def predict_genre(
             confidence = float(max(probabilities))
 
         return {
-            "filename": file.filename,
+            "filename": filename,
             "predicted_genre": genre,
             "confidence": confidence,
             "all_probabilities": prob_dict,
