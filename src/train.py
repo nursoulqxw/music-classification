@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
+from sklearn.ensemble import ExtraTreesClassifier
 from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
 # 1. Setup Paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -64,13 +66,47 @@ def main():
     svm_model = SVC(kernel='rbf', C=10, probability=True, random_state=42)
     svm_model.fit(X_train_pca, y_train)
 
+    # --- Train Extra Trees on RAW Scaled Features ---
+    print("Training Extra Trees (Raw Features)...")
+    extra_trees_model = ExtraTreesClassifier(
+        n_estimators=700,
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_features="sqrt",
+        class_weight="balanced",
+        random_state=42,
+        n_jobs=-1,
+    )
+    extra_trees_model.fit(X_train_scaled, y_train)
+
+    # --- Train CatBoost on RAW Scaled Features ---
+    print("Training CatBoost (Raw Features)...")
+    catboost_model = CatBoostClassifier(
+        iterations=700,
+        depth=6,
+        learning_rate=0.04,
+        loss_function="MultiClass",
+        eval_metric="MultiClass",
+        random_seed=42,
+        verbose=False,
+        allow_writing_files=False,
+    )
+    catboost_model.fit(X_train_scaled, y_train)
+
     # --- Weighted Soft Voting ---
     print("Extracting probabilities...")
     xgb_probs = xgb_model.predict_proba(X_test_scaled)
     svm_probs = svm_model.predict_proba(X_test_pca)
+    extra_trees_probs = extra_trees_model.predict_proba(X_test_scaled)
+    catboost_probs = catboost_model.predict_proba(X_test_scaled)
     
-    # Weight XGBoost slightly higher as it usually performs better on tabular audio features
-    blended_probs = (xgb_probs * 0.6) + (svm_probs * 0.4)
+    blended_probs = (
+        (xgb_probs * 0.40)
+        + (svm_probs * 0.25)
+        + (extra_trees_probs * 0.20)
+        + (catboost_probs * 0.15)
+    )
 
     # --- Track-Level Aggregation (Reverted to MEAN) ---
     results_df = pd.DataFrame(blended_probs, columns=le.classes_)
@@ -87,12 +123,16 @@ def main():
     print("="*50 + "\n")
     print(classification_report(track_true_labels, final_preds)) 
 
-    # --- Save All 5 Artifacts ---
+    # --- Save All Artifacts ---
     print("Saving models and preprocessors to disk...")
     with open(MODEL_DIR / "xgb_model.pkl", "wb") as f:
         pickle.dump(xgb_model, f)
     with open(MODEL_DIR / "svm_model.pkl", "wb") as f:
         pickle.dump(svm_model, f)
+    with open(MODEL_DIR / "extra_trees_model.pkl", "wb") as f:
+        pickle.dump(extra_trees_model, f)
+    with open(MODEL_DIR / "catboost_model.pkl", "wb") as f:
+        pickle.dump(catboost_model, f)
     with open(MODEL_DIR / "pca.pkl", "wb") as f:
         pickle.dump(pca, f)
     with open(MODEL_DIR / "scaler.pkl", "wb") as f:

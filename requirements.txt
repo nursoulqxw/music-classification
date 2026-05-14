@@ -2,6 +2,7 @@ numpy
 pandas
 scikit-learn
 xgboost
+catboost
 librosa
 soundfile
 audioread
@@ -17,4 +18,3 @@ python-multipart
 torch
 torchaudio
 torchvision
-

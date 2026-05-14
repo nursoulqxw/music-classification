@@ -16,12 +16,18 @@ sys.path.append(str(Path(__file__).parent / "src"))
 
 from predict import predict_song, le
 
-# CNN is optional — only available if torch/torchaudio are installed and cnn_model.pth exists
-try:
-    from predict_cnn import predict_song_cnn
-    CNN_AVAILABLE = True
-except ImportError:
-    CNN_AVAILABLE = False
+CNN_MODEL_PATH = Path(__file__).parent / "models" / "cnn_model.pth"
+CNN_AVAILABLE = CNN_MODEL_PATH.exists()
+_predict_song_cnn = None
+
+
+def get_predict_song_cnn():
+    global _predict_song_cnn
+    if _predict_song_cnn is None:
+        from predict_cnn import predict_song_cnn
+
+        _predict_song_cnn = predict_song_cnn
+    return _predict_song_cnn
 
 app = FastAPI(title="Music Genre Classifier API", version="2.0.0")
 
@@ -73,6 +79,7 @@ async def predict_genre(
 
     try:
         if model_type == "cnn":
+            predict_song_cnn = get_predict_song_cnn()
             genre, prob_dict = predict_song_cnn(tmp_path)
             confidence = max(prob_dict.values())
         else:

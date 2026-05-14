@@ -25,6 +25,7 @@ __pycache__/
 
 # Models and Data
 # models/*.pkl
+models/extra_trees_model.pkl
 models/*.joblib
 data/raw/
 data/processed/
@@ -42,6 +43,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+reports/model_analysis/.matplotlib_cache/
 
 # Build artifacts
 dist/
