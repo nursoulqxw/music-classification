@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+from pathlib import Path
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -7,9 +8,12 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report
 from xgboost import XGBClassifier
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DATA_FILE = BASE_DIR / "data" / "processed" / "final_drum_dataset.csv"
+MODEL_DIR = BASE_DIR / "models"
 
 # Load dataset
-df = pd.read_csv("data/processed/final_drum_dataset.csv")
+df = pd.read_csv(DATA_FILE)
 
 # Features / labels
 X = df.drop(columns=["label"])
@@ -55,9 +59,9 @@ print("\nClassification Report:\n")
 print(classification_report(y_test, y_pred))
 
 # Save everything
-pickle.dump(model, open("models/drum_model.pkl", "wb"))
-pickle.dump(scaler, open("models/scaler_snd.pkl", "wb"))
-pickle.dump(le, open("models/label_encoder_snd.pkl", "wb"))
-pickle.dump(feature_names, open("models/feature_names.pkl", "wb"))
+pickle.dump(model, open(MODEL_DIR / "drum_model.pkl", "wb"))
+pickle.dump(scaler, open(MODEL_DIR / "scaler_snd.pkl", "wb"))
+pickle.dump(le, open(MODEL_DIR / "label_encoder_snd.pkl", "wb"))
+pickle.dump(feature_names, open(MODEL_DIR / "feature_names.pkl", "wb"))
 
 print("\nModel saved successfully.")
