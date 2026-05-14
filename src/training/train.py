@@ -159,91 +159,67 @@ def main():
     )
 
     # ==========================================================
-    # Track-Level Aggregation
+    # Track-Level Aggregation helper
     # ==========================================================
-    results_df = pd.DataFrame(
-        blended_probs,
-        columns=le.classes_
-    )
+    def track_level_metrics(probs, name):
+        df_tmp = pd.DataFrame(probs, columns=le.classes_)
+        df_tmp["track_id"]   = test_track_ids.values
+        df_tmp["true_label"] = le.inverse_transform(y_test)
 
-    results_df["track_id"] = test_track_ids.values
-    results_df["true_label"] = le.inverse_transform(y_test)
+        track_preds = df_tmp.groupby("track_id").mean(numeric_only=True)
+        track_true  = df_tmp.groupby("track_id")["true_label"].first()
+        final       = track_preds.idxmax(axis=1)
 
-    # Mean aggregation over segments
-    track_predictions = results_df.groupby("track_id").mean(numeric_only=True)
+        acc  = accuracy_score(track_true, final)
+        prec = precision_score(track_true, final, average="weighted", zero_division=0)
+        rec  = recall_score(track_true, final, average="weighted", zero_division=0)
+        f1   = f1_score(track_true, final, average="weighted", zero_division=0)
 
-    track_true_labels = (
-        results_df.groupby("track_id")["true_label"].first()
-    )
+        y_true_enc = le.transform(track_true)
+        y_true_bin = label_binarize(y_true_enc, classes=range(len(le.classes_)))
+        roc  = roc_auc_score(y_true_bin, track_preds.values, multi_class="ovr", average="weighted")
+        pr   = average_precision_score(y_true_bin, track_preds.values, average="weighted")
 
-    final_preds = track_predictions.idxmax(axis=1)
-
-    # ==========================================================
-    # METRICS
-    # ==========================================================
-    accuracy = accuracy_score(track_true_labels, final_preds)
-
-    precision = precision_score(
-        track_true_labels,
-        final_preds,
-        average="weighted"
-    )
-
-    recall = recall_score(
-        track_true_labels,
-        final_preds,
-        average="weighted"
-    )
-
-    f1 = f1_score(
-        track_true_labels,
-        final_preds,
-        average="weighted"
-    )
-
-    # --- ROC-AUC & PR-AUC ---
-    y_true_encoded = le.transform(track_true_labels)
-
-    y_true_binarized = label_binarize(
-        y_true_encoded,
-        classes=range(len(le.classes_))
-    )
-
-    roc_auc = roc_auc_score(
-        y_true_binarized,
-        track_predictions.values,
-        multi_class="ovr",
-        average="weighted"
-    )
-
-    pr_auc = average_precision_score(
-        y_true_binarized,
-        track_predictions.values,
-        average="weighted"
-    )
+        return dict(name=name, accuracy=acc, precision=prec, recall=rec,
+                    f1=f1, roc_auc=roc, pr_auc=pr,
+                    track_true=track_true, final_preds=final)
 
     # ==========================================================
-    # PRINT RESULTS
+    # Metrics for every model
     # ==========================================================
-    print("\n" + "=" * 60)
-    print("FINAL TRACK-LEVEL RESULTS")
-    print("=" * 60)
+    model_results = [
+        track_level_metrics(xgb_probs,         "XGBoost"),
+        track_level_metrics(svm_probs,          "SVM"),
+        track_level_metrics(extra_trees_probs,  "Extra Trees"),
+        track_level_metrics(catboost_probs,     "CatBoost"),
+        track_level_metrics(blended_probs,      "Weighted Ensemble"),
+    ]
 
-    print(f"Accuracy  : {accuracy:.4f}")
-    print(f"Precision : {precision:.4f}")
-    print(f"Recall    : {recall:.4f}")
-    print(f"F1-Score  : {f1:.4f}")
-    print(f"ROC-AUC   : {roc_auc:.4f}")
-    print(f"PR-AUC    : {pr_auc:.4f}")
+    # ==========================================================
+    # PRINT RESULTS — all models side by side
+    # ==========================================================
+    col_w = 20
+    metrics = ["accuracy", "precision", "recall", "f1", "roc_auc", "pr_auc"]
+    labels  = ["Accuracy", "Precision", "Recall", "F1-Score", "ROC-AUC", "PR-AUC"]
 
-    print("\n" + "=" * 60)
-    print("CLASSIFICATION REPORT")
-    print("=" * 60)
+    header = f"\n{'Metric':<14}" + "".join(r["name"].ljust(col_w) for r in model_results)
+    print("\n" + "=" * (14 + col_w * len(model_results)))
+    print("TRACK-LEVEL METRICS — ALL MODELS")
+    print("=" * (14 + col_w * len(model_results)))
+    print(header)
+    print("-" * (14 + col_w * len(model_results)))
+    for lbl, key in zip(labels, metrics):
+        row = f"{lbl:<14}" + "".join(f"{r[key]:.4f}".ljust(col_w) for r in model_results)
+        print(row)
 
-    print(classification_report(
-        track_true_labels,
-        final_preds
-    ))
+    # ==========================================================
+    # Per-model classification report
+    # ==========================================================
+    for r in model_results:
+        print(f"\n{'=' * 60}")
+        print(f"CLASSIFICATION REPORT — {r['name']}")
+        print("=" * 60)
+        print(classification_report(r["track_true"], r["final_preds"]))
 
     # ==========================================================
     # SAVE MODELS
