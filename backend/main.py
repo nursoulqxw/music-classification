@@ -39,14 +39,25 @@ CNN_MODEL_PATH = ROOT_DIR / "models" / "cnn_model.pth"
 CNN_AVAILABLE = CNN_MODEL_PATH.exists()
 _predict_song_cnn = None
 
+SND_MODEL_PATH = ROOT_DIR / "models" / "drum_model.pkl"
+SND_AVAILABLE = SND_MODEL_PATH.exists()
+_predict_drum = None
+
 
 def get_predict_song_cnn():
     global _predict_song_cnn
     if _predict_song_cnn is None:
         from prediction.predict_cnn import predict_song_cnn
-
         _predict_song_cnn = predict_song_cnn
     return _predict_song_cnn
+
+
+def get_predict_drum():
+    global _predict_drum
+    if _predict_drum is None:
+        from prediction.predict_snd import predict_drum
+        _predict_drum = predict_drum
+    return _predict_drum
 
 app = FastAPI(title="Music Genre Classifier API", version="2.0.0")
 
@@ -75,7 +86,7 @@ async def health():
 # Tells the frontend which models are ready to use
 @app.get("/models")
 async def available_models():
-    return {"ml": True, "cnn": CNN_AVAILABLE}
+    return {"ml": True, "cnn": CNN_AVAILABLE, "snd": SND_AVAILABLE}
 
 
 @app.get("/info")
@@ -132,6 +143,51 @@ async def predict_genre(
             "confidence": confidence,
             "all_probabilities": prob_dict,
             "model_used": model_type,
+        }
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}")
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+
+@app.post("/predict-drum")
+async def predict_drum_class(
+    file: UploadFile = File(...),
+):
+    filename = file.filename or ""
+    if not filename.lower().endswith((".mp3", ".wav", ".flac", ".aac", ".ogg")):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file format. Please upload MP3, WAV, FLAC, AAC, or OGG.",
+        )
+
+    if not SND_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Drum model is unavailable. Run train_snd.py to generate the model artifacts.",
+        )
+
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=os.path.splitext(filename)[1]
+    ) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        from prediction.predict_snd import le as le_snd
+        predict_drum = get_predict_drum()
+        label, probs = predict_drum(tmp_path)
+        prob_dict = {
+            le_snd.classes_[i]: float(probs[i]) for i in range(len(le_snd.classes_))
+        }
+        return {
+            "filename": filename,
+            "predicted_class": label,
+            "confidence": float(max(probs)),
+            "all_probabilities": prob_dict,
         }
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))

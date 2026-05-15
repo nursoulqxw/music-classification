@@ -61,13 +61,18 @@
             <span class="model-option__name">CNN</span>
             <span class="model-option__desc">ResNet18 on mel spectrograms</span>
           </label>
+          <label class="model-option" id="opt-snd">
+            <input type="radio" name="model" value="snd" />
+            <span class="model-option__name">&#x1F941; Drum Sound</span>
+            <span class="model-option__desc">Kick · Snare · Hi-hat · Clap</span>
+          </label>
         </div>
       </div>
 
       <p class="error-msg" id="error-msg" role="alert"></p>
 
       <button class="btn btn--primary" id="analyze-btn" disabled>
-        Analyze Genre
+        Analyze
       </button>
     </section>
 
@@ -79,7 +84,7 @@
 
     <section class="card" id="results-card" hidden>
       <div class="result-hero">
-        <p class="result-hero__label">Predicted Genre</p>
+        <p class="result-hero__label" id="result-label">Predicted Genre</p>
         <p class="result-hero__genre" id="result-genre"></p>
         <p class="result-hero__confidence">
           Confidence: <span id="result-confidence"></span>
@@ -87,7 +92,7 @@
       </div>
 
       <div class="prob-section">
-        <h3 class="prob-section__title">All Genres</h3>
+        <h3 class="prob-section__title" id="prob-section-title">All Genres</h3>
         <div id="prob-list"></div>
       </div>
 

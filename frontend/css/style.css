@@ -254,6 +254,12 @@ body {
   margin-top: 1.25rem;
 }
 
+.btn--drum {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  margin-top: 0.65rem;
+}
+
 .btn--ghost {
   background: transparent;
   border: 1px solid var(--border);
@@ -393,7 +399,7 @@ body {
 
 .model-selector__options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.6rem;
 }
 

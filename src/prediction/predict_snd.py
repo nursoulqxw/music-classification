@@ -14,9 +14,13 @@ Related modules:
   src/training/train_snd.py       — trained and saved the drum model artifacts
 """
 
+import sys
 import pickle
 import pandas as pd
 from pathlib import Path
+
+# Make `features` importable when running this file directly
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from features.extraction_snd import extract_features
 

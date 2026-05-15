@@ -5,8 +5,8 @@ const fileNameEl   = document.getElementById("file-name");
 const fileSizeEl   = document.getElementById("file-size");
 const clearBtn     = document.getElementById("clear-btn");
 const audioPlayer  = document.getElementById("audio-player");
-const errorMsg     = document.getElementById("error-msg");
-const analyzeBtn   = document.getElementById("analyze-btn");
+const errorMsg    = document.getElementById("error-msg");
+const analyzeBtn  = document.getElementById("analyze-btn");
 
 const uploadCard   = document.getElementById("upload-card");
 const loadingCard  = document.getElementById("loading-card");
@@ -16,10 +16,12 @@ const resultGenre      = document.getElementById("result-genre");
 const resultConfidence = document.getElementById("result-confidence");
 const probList         = document.getElementById("prob-list");
 const resetBtn         = document.getElementById("reset-btn");
+const resultLabel      = document.getElementById("result-label");
+const probSectionTitle = document.getElementById("prob-section-title");
 
 let selectedFile = null;
 
-// Fetch which models are available and disable CNN if not ready
+// Fetch which models are available and disable any that are not ready
 fetch("/models")
   .then((r) => r.json())
   .then((data) => {
@@ -28,6 +30,12 @@ fetch("/models")
       cnnOpt.classList.add("is-disabled");
       cnnOpt.querySelector("input").disabled = true;
       cnnOpt.querySelector(".model-option__desc").textContent = "not available";
+    }
+    if (!data.snd) {
+      const sndOpt = document.getElementById("opt-snd");
+      sndOpt.classList.add("is-disabled");
+      sndOpt.querySelector("input").disabled = true;
+      sndOpt.querySelector(".model-option__desc").textContent = "not available";
     }
   })
   .catch(() => {});
@@ -86,20 +94,32 @@ async function analyze() {
 
   const modelType = document.querySelector('input[name="model"]:checked').value;
 
-  const formData = new FormData();
-  formData.append("file", selectedFile);
-  formData.append("model_type", modelType);
-
   try {
-    const res = await fetch("/predict", { method: "POST", body: formData });
+    let data;
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || `Server error ${res.status}`);
+    if (modelType === "snd") {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const res = await fetch("/predict-drum", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error ${res.status}`);
+      }
+      data = await res.json();
+      renderDrumResults(data);
+    } else {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("model_type", modelType);
+      const res = await fetch("/predict", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error ${res.status}`);
+      }
+      data = await res.json();
+      renderResults(data);
     }
 
-    const data = await res.json();
-    renderResults(data);
     showCard("results");
     launchConfetti();
   } catch (err) {
@@ -108,7 +128,45 @@ async function analyze() {
   }
 }
 
+function renderDrumResults(data) {
+  resultLabel.textContent = "Predicted Drum Class";
+  probSectionTitle.textContent = "All Drum Classes";
+  resultGenre.textContent = data.predicted_class;
+  resultConfidence.textContent = pct(data.confidence);
+
+  probList.innerHTML = "";
+
+  const sorted = Object.entries(data.all_probabilities).sort(
+    ([, a], [, b]) => b - a
+  );
+
+  sorted.forEach(([cls, prob], idx) => {
+    const isTop = idx === 0;
+    const item = document.createElement("div");
+    item.className = "prob-item";
+    item.innerHTML = `
+      <span class="prob-item__label">${cls}</span>
+      <div class="prob-item__track">
+        <div class="prob-item__fill ${isTop ? "prob-item__fill--top" : ""}"
+             data-width="${pct(prob, false)}"></div>
+      </div>
+      <span class="prob-item__value">${pct(prob)}</span>
+    `;
+    probList.appendChild(item);
+  });
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll(".prob-item__fill").forEach((bar) => {
+        bar.style.width = bar.dataset.width;
+      });
+    });
+  });
+}
+
 function renderResults(data) {
+  resultLabel.textContent = "Predicted Genre";
+  probSectionTitle.textContent = "All Genres";
   resultGenre.textContent = data.predicted_genre;
   resultConfidence.textContent = pct(data.confidence);
 
