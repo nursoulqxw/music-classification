@@ -15,12 +15,12 @@ __pycache__/
 .ipynb_checkpoints/
 *.ipynb_checkpoints/
 
-# Data (large files — add manually if needed)
+# Data
 data/raw/
-data/processed/
+# data/processed/ — CSVs are committed (needed to run notebooks)
 
-# Model artifacts (keep .pkl and .pth in version control if small enough)
-# models/extra_trees_model.pkl
+# Model artifacts
+models/extra_trees_model.pkl
 *.joblib
 
 # Matplotlib cache

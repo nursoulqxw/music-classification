@@ -87,7 +87,7 @@ def main():
     groups = df["track_id"]
 
     le = LabelEncoder()
-    y_encoded: np.ndarray = le.fit_transform(y)
+    y_encoded: np.ndarray = np.array(le.fit_transform(y))
 
     unique_songs = groups.unique()
 
@@ -128,7 +128,6 @@ def main():
         learning_rate=0.05,
         subsample=0.8,
         colsample_bytree=0.8,
-        use_label_encoder=False,
         eval_metric="mlogloss",
         random_state=42
     )
@@ -219,15 +218,15 @@ def main():
         track_true  = df_tmp.groupby("track_id")["true_label"].first()
         final       = track_preds.idxmax(axis=1)
 
-        acc  = accuracy_score(track_true, final)
-        prec = precision_score(track_true, final, average="weighted", zero_division=0)
-        rec  = recall_score(track_true, final, average="weighted", zero_division=0)
-        f1   = f1_score(track_true, final, average="weighted", zero_division=0)
+        acc  = float(accuracy_score(track_true, final))
+        prec = float(precision_score(track_true, final, average="weighted", zero_division=0))
+        rec  = float(recall_score(track_true, final, average="weighted", zero_division=0))
+        f1   = float(f1_score(track_true, final, average="weighted", zero_division=0))
 
         y_true_enc = le.transform(track_true)
         y_true_bin = label_binarize(y_true_enc, classes=range(len(le.classes_)))
-        roc  = roc_auc_score(y_true_bin, track_preds.values, multi_class="ovr", average="weighted")
-        pr   = average_precision_score(y_true_bin, track_preds.values, average="weighted")
+        roc  = float(roc_auc_score(y_true_bin, track_preds.values, multi_class="ovr", average="weighted"))
+        pr   = float(average_precision_score(y_true_bin, track_preds.values, average="weighted"))
 
         return _ModelResult(name=name, accuracy=acc, precision=prec, recall=rec,
                             f1=f1, roc_auc=roc, pr_auc=pr,
